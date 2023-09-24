@@ -2,6 +2,8 @@
 
 ## 变量类型和计算
 
+### 面试题
+
 1.typeof能判断哪些数据类型
 
 - 值类型 str number boolean undefined Symbol
@@ -54,3 +56,20 @@ function DeepClone(obj={}){
 }
 ```
 
+## 原型和原型链
+
+### 面试题
+
+1.如何判断一个变量是不是数组？
+
+2.手写一个简易的jQuery，考虑插件和扩展性
+
+3.class的原型本质，怎么理解？
+
+### 知识点
+
+1.class和继承
+
+2.类型判断instanceof
+
+3.原型和原型链
