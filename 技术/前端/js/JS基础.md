@@ -62,9 +62,60 @@ function DeepClone(obj={}){
 
 1.如何判断一个变量是不是数组？
 
+- a instanceof Array
+
 2.手写一个简易的jQuery，考虑插件和扩展性
 
+```js
+class jQuery {
+  constructor(selector){
+    const result = document.querySelectorAll(selector)
+    const length = result.length
+    for(let i = 0;i<length;i++){
+      this[i] = result[i]
+    }
+    this.length = length
+    this.selector = selector
+  }
+  get(index){
+    return this[index]
+  }
+  each(fn){
+    for(let i = 0;i<this.length;i++){
+      const elem = this[i]
+      fn(elem)
+    }
+  }
+  on(type,fn){
+    return this.each(elem => {
+      elem.addEventListener(type,fn,false)
+    })
+  }
+  
+}
+
+// 插件扩展性
+jQuery.prototype.dialog = function(info){
+  alert(info)
+}
+
+// 造轮子
+class myJquery extends jQuery {
+  constructor(selector){
+    super(selector)
+  }
+  // 实现自己的方法
+  addClass(className){
+    
+  }
+}
+```
+
+
+
 3.class的原型本质，怎么理解？
+
+- 原型和原型链
 
 ### 知识点
 
@@ -72,7 +123,18 @@ function DeepClone(obj={}){
 
 2.类型判断instanceof
 
+```js
+[] instanceof Array // true
+{} instanceof Object // true
+{} instanceof object // true
+```
+
+
+
 3.原型和原型链
+- 每个class都有一个显示原型`prototype`
+- 每个实例对象都有一个隐式原型`__proto__`
+- 实例对象的隐式原型指`__proto__`指向class的显示原型`prototype`
 
 ## 作用域与闭包
 
@@ -241,3 +303,4 @@ function DeepClone(obj={}){
   - 网络请求 如ajax图片加载
   - 定时任务 如setTimeout
 - callback hell 和 Promise
+
