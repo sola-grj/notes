@@ -6,6 +6,8 @@
 - DOM事件和event loop，DOM事件也使用回调，基于event loop
 - 调用栈空闲的时候，尝试DOM渲染，在触发event loop
 
+同步代码，一行一行放在call stack执行，遇到异步，会先“记录”下，等待时机（定时，网络请求等），时机到了，就将其移动到callback queue中，等待call stack为空（即同步代码执行完毕）Event loop开始工作，轮询查找Callback Queue，如有则移动到Call stack执行
+
 ## promise进阶
 
 - 三种状态
@@ -59,6 +61,129 @@
 - API .resolve .reject .all .race
 
 ```js
+class MyPromise {
+    state = 'pending' // pending fulfilled rejected
+    value = undefined // 成功后的值
+    reason = undefined // 失败后的值
+    resolveCallbacks = [] // pending状态下存储成功的回调
+    rejectCallbacks = [] // pending状态下，存储失败的回调
+    constructor(fn){
+        const resolveHandler = (value) => {
+            if(this.state === 'pending'){
+                this.state = 'fulfilled'
+                this.value = value
+                this.resolveCallbacks.forEach(fn => fn(this.value))
+            }
+        }
+        const rejectHandler = (reason) => {
+            if(this.state === 'pending'){
+                this.state = 'rejected'
+                this.reason = reason
+                this.rejectCallbacks.forEach(fn => fn(this.reason))
+            }
+        }
+        try {
+            fn(resolveHandler,rejectHandler)
+        }catch(err) {
+            rejectHandler(err)
+        }
+        
+    }
+    then(fn1,fn2){
+        // 判断传入的两个参数是否为函数类型
+        fn1 = typeof fn1 === 'function' ? fn1 : (v) => v
+        fn2 = typeof fn2 === 'function' ? fn2 : (e) => e
+        if(this.state === 'pending'){
+            const p1 = new MyPromise((resolve,reject) => {
+                this.resolveCallbacks.push(() => {
+                    try{
+                        const newValue = fn1(this.value)
+                        resolve(newValue) // p1.value
+                    }catch(err){
+                        reject(err)
+                    }
+                })
+                this.rejectCallbacks.push(() => {
+                    tyr{
+                        const newReason = fn2(this.reason)
+                        reject(newReason)
+                    }catch(err){
+                        reject(err)
+                    }
+                })
+            })
+            return p1
+        }
+        if(this.state === 'fulfilled'){
+            const p1 = new MyPromise((resolve,reject) => {
+                try{
+                    const newValue = fn1(this.value)
+                    resolve(newValue)
+                }catch(e){
+                    reject(err)
+                }
+            })
+            return p1
+        }
+        if(this.state === 'rejected'){
+            const p1 = new MyPromise((resolve,reject) => {
+                try{
+                    const newReason = fn2(this.reason)
+                    reject(newReason) 
+                }catch(err){
+                    reject(err)
+                }
+            })
+            return p1
+        }
+    }
+    catch(fn){
+        return this.then(null,fn)
+    }
+}
+
+MyPromise.resolve = function(value){
+    return new MyPromise((resolve,reject) => resolve(value))
+}
+MyPromise.reject = function(reason){
+    return new MyPromise((resolve,reject) => reject(reason))
+}
+MyPromise.all = function(promiseList=[]){
+    const p1 = new MyPromise((resolve,reject) => {
+        const result = []
+        const length = promiseList.length
+        let resolvedCount = 0
+        promiseList.forEach(p => {
+            p.then(data => {
+                result.push(data)
+                // resolvedCount必须在then里面做++ 不能用index
+                resolvedCount++
+                if(resolvedCount === length){
+                    resolve(result)
+                }
+            }).catch(err => {
+                reject(err)
+            })
+        })
+    })
+    return p1
+}
+MyPromise.race = function(promiseList=[]){
+    let resolved = false
+    const p1 = new MyPromise((resolve,reject) => {
+        promiseList.forEach(p => {
+            p.then(data => {
+                if(!resolved){
+                    resolve(data)
+                    resolved = true
+                }
+            }).catch(err => {
+                reject(err)
+            })
+        })
+    })
+    return p1
+}
 ```
 
 
