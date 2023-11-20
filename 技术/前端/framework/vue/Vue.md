@@ -1,4 +1,4 @@
-# Vue
+# Vue2
 
 ## 基本使用
 
@@ -147,7 +147,7 @@ export default {
 </script>
 
 <style>
-
+ 
 </style>
 子组件
 <template>
@@ -466,6 +466,127 @@ export default {};
 5.keep-alive
 
 - 缓存组件，频繁切换，不需要重复渲染
-- vue常见性能优化
+- vue常见性能优化，像是Tab切换可以使用keep-alive做缓存
 
 6.mixin
+
+- 多个组件有相同的逻辑，抽离出来
+- mixin并不是完美的解决方案，会有一些问题
+  - 变量来源不明确，不利于阅读
+  - 多mixin可能会造成命名冲突
+  - mixin和组件可能出现多对多的关系，复杂度高
+- Vue3提出的Composition API 旨在解决这些问题
+
+```vue
+<template>
+  <div>
+    <p>{{ name }} {{ major }} {{ city }}</p>
+    <button @click="showName">show name</button>
+  </div>
+</template>
+
+<script>
+import myMixin from './mixin'
+export default {
+    mixins:[myMixin],
+    data(){
+        return {
+            name:'sola',
+            major:'web'
+        }
+    },
+    methods:{
+
+    },
+    mounted(){
+        console.log('mounted',this.name);
+    }
+}
+</script>
+
+<style>
+
+</style>
+```
+
+mixin.js
+
+```js
+export default {
+    data(){
+        return {
+            city:'北京'
+        }
+    },
+    methods:{
+        showName(){
+            console.log(this.name);
+        }
+    },
+    mounted(){
+        console.log('mixin mounted',this.name);
+    }
+}
+```
+
+## Vuex
+
+- state
+- getters
+- action
+- mutation
+
+使用API
+
+- dispatch 
+- commit
+- mapState
+- mapGetters
+- mapActions
+- mapMutations
+
+## Vue-router
+
+- 路由模式
+
+  - hash http://abc.com/#/user/10
+  - H5 history http://abc.com/user/20 需要后端支持
+
+- 路由配置（动态路由、懒加载）
+
+  - 动态路由
+
+    ```js
+    const User = {
+        template:'<div>User {{$router.params.id}}</div>'
+    }
+    const router = new VueRouter({
+        routes:[
+            // 动态路由 以冒号开头。能命中 `/user/10` `/user/20` 等格式的路由
+            {path:'/user/:id',component:User}
+        ]
+    })
+    ```
+
+  - 懒加载
+
+    ```js
+    export default new VueRouter({
+        routes:[
+            {
+                path:'/',
+                component:() => import(
+                    /*webpacckChunkName: "navigator"*/
+                './../components/Navigator')
+            },
+            {
+                path:'/feedback',
+                component:() => import(
+                    /*webpacckChunkName: "feedback"*/
+                './../components/Feedback')
+            }
+        ]
+    })
+    ```
+
+    
