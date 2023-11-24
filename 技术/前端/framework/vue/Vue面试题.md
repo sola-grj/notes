@@ -403,7 +403,7 @@ export default new VueRouter({
   import {createApp,defineAsyncComponent} from 'vue'
   createApp({
   	components:{
-  		AsyncComponent:defineAsyncComponent(() => import('./my-component.vue'))
+  		'AsyncComponent':defineAsyncComponent(() => import('./my-component.vue'))
   	}
   })
   ```
@@ -673,10 +673,54 @@ export default new VueRouter({
   - 标记 ，分为不同的类型，如TEXT PROPS CLASS等等
   - diff算法时，可以区分静态节点，以及不同类型的动态节点
 - hoistStatic
+  - 将静态节点的定义，提升到父作用域，缓存起来
+  - 多个相邻的静态节点，会被合并起来
+  - 典型的拿空间换时间的优化策略
+
 - cacheHandler
+  - 缓存事件
+
 - SSR优化
+  - 静态节点直接输出，绕过了vdom
+  - 动态节点，还是需要动态渲染
+
 - tree-shaking
+  - 编译时 ，根据不同的情况引用不同的API
 
 38.Vite是什么
 
+- 一个前端打包工具，开发环境无需打包，启动非常快
+
+- 开发环境使用ES6 Module ，无需打包——非常快
+
+- 生产环境使用rollup，并不会快很多
+
+- ES6 Module
+
+  ```html
+  <script type="module">
+      // ES6 Module普通引入
+      import add from './src/add.js'
+      import {add,multi} from './src/math.js'
+  </script>
+  <!--外链引用-->
+  <script type="module" src="./src/math.js"></script>
+  <!--远程引用-->
+  <script type="module" src="https://unpkg.com/redux@latest/es/redux.mjs"></script>
+  <!--动态引用-->
+  <script type="module">
+      document.getElementById('btn1',async () => {
+          const add = await import('./src/add.js')
+      })
+      document.getElementById('btn2',async () => {
+          const {add,multi} = await import('./src/add.js')
+      })
+  </script>
+  ```
+
 39.Comopsition API 和 React Hooks的对比
+
+- Composition API setup只会被调用一次，而后者函数会被调用多次
+- Composition API 不需要 useMemo useCallback，因为setup只会被调用一次
+- Composition API无需考虑调用顺序，而后者需要保证hooks的顺序一致
+- Composition API 的 reactive+ ref 比 ReactHooks要更难理解
